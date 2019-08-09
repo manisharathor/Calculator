@@ -1,0 +1,233 @@
+#include<avr/io.h>
+#include<util/delay.h>
+void lcd_init()
+{
+ lcd_cmd(0x02);
+ lcd_cmd(0x28);
+ lcd_cmd(0x0c);
+ lcd_cmd(0x06);
+ lcd_cmd(0x01);
+}
+void lcd_cmd(int cmd)
+{
+PORTB = cmd&0xf0;         //upper bit                                                             
+PORTB = PORTB+0X04;
+_delay_ms(1);
+PORTB = PORTB-0x04;
+PORTB = (cmd<<4)&0xf0;    //lower bit                 
+PORTB = PORTB+0X04;
+_delay_ms(1);
+PORTB = PORTB - 0X04;
+}
+void lcd_data(int data)
+{
+ PORTB =  data&0xf0;
+ PORTB = PORTB +0X05;
+ _delay_ms(1);
+ PORTB = PORTB - 0x04;
+ PORTB = (data<<4)&0xf0;
+ PORTB = PORTB +0x05;
+ _delay_ms(1);
+ PORTB = PORTB - 0X04;
+}
+void lcd_string(char *str)
+{
+ int i = 0;
+ while(str[i]!='\0')
+ {
+  lcd_data(str[i]);
+  i++;
+  }
+ }
+  void lcd_num(int num)
+  {
+   int a=0;
+   if(num==0)
+   {
+   lcd_data(48);
+   }
+   lcd_cmd(0x04);  //reverse
+   while(num!=0)
+   {
+   a=num%10;
+   lcd_data(48+a);
+   num = num/10;
+   }
+   lcd_cmd(0x06); //forward
+   }
+
+int keypad()
+{
+while(1)
+{
+ PORTD = 0XEF;
+ if(PIND==0XEE)
+ {
+  while(PIND == 0XEE);
+  return 7;
+}
+else if (PIND ==0XED)
+{
+while(PIND == 0XED);
+return 4;
+}
+else if(PIND ==0XEB)
+{
+ while(PIND == 0XEB);
+ return 1;
+}
+else if(PIND == 0XE7)
+{
+while(PIND == 0XE7);
+return 10;
+}
+
+
+PORTD = 0XDF;
+ if(PIND==0XDE)
+ {
+  while(PIND == 0XDE);
+  return 8;
+}
+else if (PIND ==0XDD)
+{
+while(PIND == 0XDD);
+return 5;
+}
+else if(PIND ==0XDB)
+{
+ while(PIND == 0XDB);
+ return 2;
+}
+else if(PIND == 0XD7)
+{
+while(PIND == 0XD7);
+return 0;
+}
+
+
+
+PORTD = 0XBF;
+ if(PIND==0XBE)
+ {
+  while(PIND == 0XBE);
+  return 9;
+}
+else if (PIND ==0XBD)
+{
+while(PIND == 0XBD);
+return 6;
+}
+else if(PIND ==0XBB)
+{
+ while(PIND == 0XBB);
+ return 3;
+}
+else if(PIND == 0XB7)
+{
+while(PIND == 0XB7);
+return 11;
+}
+  
+  
+  PORTD  = 0X7F;
+ if(PIND==0X7E)
+ {
+  while(PIND == 0X7E);
+  return 12;
+}
+else if (PIND ==0X7D)
+{
+while(PIND == 0X7D);
+return 13;
+}
+else if(PIND ==0X7B)
+{
+ while(PIND == 0X7B);
+ return 14;
+}
+else if(PIND == 0X77)
+{
+while(PIND == 0X77);
+return 15;
+}
+}
+}
+
+
+int main()
+{
+int x = 0,y = 0,a = 0, r = 0;
+DDRB = 0XFF;
+DDRD = 0XF0;
+lcd_init();
+_delay_ms(10);
+while(1)
+{ 
+lcd_cmd(0x80);
+lcd_string("enter  a number");
+while(a!=11)
+{
+ a = keypad();
+ if(a==11)
+ {
+  break;
+}
+else
+{
+ x = x*10+a;
+ lcd_cmd(0x01);
+ lcd_cmd(0x87);
+ lcd_num(a);
+ }
+}
+ a = 0;
+
+lcd_cmd(0x80);
+lcd_string("enter  a number");
+while(a!=11)
+{
+ a = keypad();
+ if(a==11)
+ {
+  break;
+}
+else
+{
+ y= y*10+a;
+ lcd_cmd(0x01);
+ lcd_cmd(0x87);
+ lcd_num(a);
+ }
+}
+ a = 0;
+  lcd_cmd(0x80);
+  lcd_string("enter operator");
+  a = keypad();
+  if(a == 12)
+  {
+   r = x/y;
+  }
+  else if (a == 13)
+  {
+   r = x*y; 
+   }
+   else if(a == 14)
+   {
+    r = x-y;
+	}
+ else if(a == 15)
+ {
+  r = x+y;
+}
+lcd_cmd(0x01);
+lcd_cmd(0x86);
+lcd_num(r);
+_delay_ms(1000);
+r = 0;
+x = 0;
+y = 0;
+}
+}
+
+
